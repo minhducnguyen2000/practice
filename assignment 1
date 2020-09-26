@@ -142,18 +142,6 @@ library(tibble)
 minusma <- add_column(minusma,personnel_time, .after = "date")
 minusma
 
-#
-library(dplyr)
-minusma %>% 
-  group_by(date) %>% 
-  summarise(total_personnel = sum(total_personnel))
-
-tapply(minusma$total_personnel, minusma$date, FUN=sum)
-group_by(minusma, date) %>% summarise(personnel_time = sum(personnel_time))
-minusma % > %
-  group_by(date) % > %
-  summarise(personnel_time = n()) % > %
-  arrange(desc(personnel_time))
 minusma_group <- aggregate(minusma$total_personnel, by=list(unique.date=minusma$date), FUN=sum)
 minusma_group
 #calculate average personnel in MINUSMA
