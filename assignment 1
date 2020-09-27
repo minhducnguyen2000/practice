@@ -1,8 +1,6 @@
-#Step 1: Load dataset - Done
-#create the path to the file "unpeople.csv" in the computer
-path <- file.path("~","Downloads","unpeople.csv")
+#Step 1: Load dataset
 #load, read, and frame the dataset to "unpeople"
-unpeople <- data.frame(read.csv(path,stringsAsFactors =FALSE))
+unpeople <- data.frame(read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTdOKU6Hc-iNdhQ9soTgv0HFqXr9_FuigGqP4pfQWXEqXPEx1c8CjskTn2eso0VX3QYUPGlHivl-3F5/pub?gid=213778411&single=true&output=csv",stringsAsFactors =FALSE))
 #check the dataset imported
 head(unpeople)
 nrow(unpeople)
@@ -25,30 +23,26 @@ nrow(unpeople)
 #Change Last_Reporting_Date column to Date object and store to date
 date <- as.Date(unpeople$Last_Reporting_Date,"%d/%m/%Y")
 #run to check
-date
+head(date)
 #add the date list to the "unpeople" data frame which is eliminated Last_Reporting_Date column
 unpeople <- cbind(date,unpeople[,-9])
 #check the class of date column whether it is changed to Date object
-class(unpeople$Female_Personnel)
+class(unpeople$date)
 #see the "unpeople" data frame
-unpeople
+head(unpeople)
 
 #Step 4:
+total_personnel <- unpeople$Female_Personnel+unpeople$Male_Personnel
+unpeople <-cbind(total_personnel,unpeople)
 #create subset with only formed police units
 formed_police <- subset(unpeople,unpeople$Personnel_Type=="Formed Police Units")
-formed_police
+head(formed_police)
 #create subset with only formed police units people reported in July 2020 from the formed_police subset
-formed_police_2020 <- subset(formed_police,formed_police$date > as.Date("2020-06-30"),select = c("Female_Personnel","Male_Personnel"))
-formed_police_2020
-#calculate the sum of female in formed police units in July 2020
-sum_female_2020 <- sum(formed_police_2020$Female_Personnel)
-sum_female_2020
-#calculate the sum of personnel (both male and female) in formed police units in July 2020
-sum_2020 <- sum(formed_police_2020$Female_Personnel + formed_police_2020$Male_Personnel)
-sum_2020
-#calculate the percentage of female in formed polive units in July 2020
-percent_female_2020 <- sum_female_2020/sum_2020*100
+formed_police_2020 <- subset(formed_police,formed_police$date > as.Date("2020-06-30"),select = c("total_personnel","Female_Personnel","Male_Personnel"))
+head(formed_police_2020)
+percent_female_2020 <- sum(formed_police_2020$Female_Personnel)/sum(formed_police_2020$total_personnel)*100
 percent_female_2020 <- round(percent_female_2020,digits = 1)
+percent_female_2020
 #use if() function to compare with the goal in 2028 whether we achieved or failed that goal
 #print the result
 if(percent_female_2020>=20){
@@ -57,6 +51,7 @@ if(percent_female_2020>=20){
   print("Goal failed")
 }
 
+
 #Step 5: Plot the bar chart
 #to create subset with a range of date, I import and use "dplyr" package to filter
 install.packages("dplyr")
@@ -64,34 +59,30 @@ library(dplyr)
 #calculate the percentage of woman in 2019
 #create subset with only formed police units people reported in 2019
 formed_police_2019 <- filter(formed_police,formed_police$date > as.Date("2018-12-31") & formed_police$date < as.Date("2020-01-01"))
-formed_police_2019 
+head(formed_police_2019)
 #calculate the percentage of woman in formed police units in 2019
-percent_female_2019 <- sum(formed_police_2019$Female_Personnel)/(sum(formed_police_2019$Female_Personnel)+sum(formed_police_2019$Male_Personnel))*100
+percent_female_2019 <- sum(formed_police_2019$Female_Personnel)/sum(formed_police_2019$total_personnel)*100
 percent_female_2019 <- round(percent_female_2019,digits = 1)
+percent_female_2019
 
 #create subset with only formed police units people reported in 2018
 formed_police_2018 <- filter(formed_police,formed_police$date > as.Date("2017-12-31") & formed_police$date < as.Date("2019-01-01"))
-formed_police_2018
+head(formed_police_2018)
 #calculate the percentage of woman in formed police units in 2018
-percent_female_2018 <- sum(formed_police_2018$Female_Personnel)/(sum(formed_police_2018$Female_Personnel)+sum(formed_police_2018$Male_Personnel))*100
+percent_female_2018 <- sum(formed_police_2018$Female_Personnel)/sum(formed_police_2018$total_personnel)*100
 percent_female_2018 <- round(percent_female_2018,digits = 1)
+percent_female_2018
 
 #create subset with only formed police units people reported in 2017
 formed_police_2017 <- subset(formed_police,formed_police$date > as.Date("2016-12-31") & formed_police$date < as.Date("2018-01-01"))
-formed_police_2017
+head(formed_police_2017)
 #calculate the percentage of woman in formed police units in 2017
-percent_female_2017 <- sum(formed_police_2017$Female_Personnel)/(sum(formed_police_2017$Female_Personnel)+sum(formed_police_2017$Male_Personnel))*100
+percent_female_2017 <- sum(formed_police_2017$Female_Personnel)/sum(formed_police_2017$total_personnel)*100
 percent_female_2017 <- round(percent_female_2017,digits = 1)
+percent_female_2017
 
-#store all the results in "percent" variable
-percent <- c(percent_female_2017,percent_female_2018,percent_female_2019,percent_female_2020,20)
-percent
-#store years in "year" variable. I imported those year as "character" not numeric 
-#                                     because they present as categorical variables in this case
-year <- c("2017","2018","2019","2020","2028")
-year
-#create a new data frame with year and corresponding results each year
-peryear <- data.frame(year,percent)
+#create peryear data frame that contains years and percentage of female serving each year
+peryear <- data.frame(year=c("2017","2018","2019","2020","2028"),percent=c(percent_female_2017,percent_female_2018,percent_female_2019,percent_female_2020,20))
 peryear
 
 #load the "tidyverse" and "ggplot2" packages used for plotting bar chart
@@ -105,88 +96,92 @@ plotbar <- ggplot(data=peryear, aes(x=year, y=percent)) +
 #print the bar chart plotted
 plotbar
 
+
 #Step 6:
 #with those countries rotation, I stored them into "countries" variable
 countries <- c("USA","KOR","IND","DEU","ARG","GBR")
 #create a subset containing only observations of those countries and store in "ppcountries" variable
 ppcountries <- filter(unpeople, unpeople$ISOCode3 %in% countries)
-ppcountries
+head(ppcountries)
 #use trimws function to remove trailing space in the Mission_Acronym values and stored into "mission_rev" vector
 mission_rev <- trimws(ppcountries$Mission_Acronym, which = c("both", "left", "right"),whitespace = "[ \t\r\n]")
-mission_rev
 #add "mission_rev" vector to the data frame ppcountries and remove the old mission-acronym 
 #store back the new data frame to the ppcountries variable
-ppcountries <- cbind(mission_rev,ppcountries[,-6])
-ppcountries
+ppcountries <- cbind(mission_rev,ppcountries[,-7])
+head(ppcountries)
 #create function with unique function to find the unique values from each countries and calculate the number of missions 
-mission_func <- function(i){
-  uni <- unique(subset(ppcountries,ppcountries$ISOCode3==countries[i],select = "mission_rev"))
-  cat("The unique mission of",countries[i])
-  print(uni)
-  print(nrow(uni))
+mission_fun <- function(i){
+  mission_list <- unique(subset(ppcountries,ppcountries$ISOCode3==countries[i],select = "mission_rev"))
+  total_mission <- nrow(mission_list)
+  cat(countries[i],total_mission)
+  print(mission_list)
 }
-#use sapply function to create a loop from 1 to length(countries) with mission_func function
-sapply(1:length(countries),mission_func)
+sapply(1:length(countries),mission_fun)
+
 
 #Step 7:
 #create subset of MINUSMA 
-total_personnel <- unpeople$Female_Personnel+unpeople$Male_Personnel
-unpeople <-cbind(total_personnel,unpeople)
 minusma <- subset(unpeople,unpeople$Mission_Acronym=="MINUSMA")
-minusma
-
-#answer (a) Across time, how much total personnel was stationed there on average?
-#calculate the total personnel over time
-#create "sum" function to calculate the total personnel reported over time
-library(tibble)
-minusma <- add_column(minusma,personnel_time, .after = "date")
-minusma
-
+head(minusma)
+#group total personnel by date with aggregate function
 minusma_group <- aggregate(minusma$total_personnel, by=list(unique.date=minusma$date), FUN=sum)
-minusma_group
+head(minusma_group)
 #calculate average personnel in MINUSMA
-avg_personnel <- mean(minusma$personnel_time)
-avg_personnel
+avg_personnel <- mean(minusma_group$x)
+cat("(a) Average number of personnel:",avg_personnel)
 #median personnel in MINUSMA
-median <- median(minusma$personnel_time)
-median
+median <- median(minusma_group$x)
+cat("(b) Median number of personnel:",median)
 #The 25th and 75th quantiles
-quantile <- quantile(minusma$personnel_time)
+quantile <- quantile(minusma_group$x)
 quantile_25 = quantile[2]
-quantile_25
+cat("(c) 25th percentile of personnel:",quantile_25)
 quantile_75 = quantile[4]
-quantile_75
+cat("(d) 75th percentile of personnel:",quantile_75)
 #(c) When was the lowest point and how many troops were stationed there then? 
-lowest_point <- subset(minusma,minusma$personnel_time == min(minusma$personnel_time),select = "date")
-lowest_point
-min <- min(minusma$personnel_time)
-min
+lowest_point <- subset(minusma_group,minusma_group$x == min(minusma_group$x))
+cat("(e) Lowest number of troops:",lowest_point$x,"on",as.character.Date(lowest_point$unique.date))
 #(d) When was the highest and how many?
-highest_point <- subset(minusma,minusma$personnel_time == max(minusma$personnel_time),select = "date")
-highest_point
-max <- max(minusma$personnel_time)  
-max
+highest_point <- subset(minusma_group,minusma_group$x == max(minusma_group$x))
+cat("(f) Highest number of troops:",highest_point$x,"on",as.character.Date(highest_point$unique.date))
+
 
 #extra part
-path1 <- file.path("~","Downloads","gdp-per-capita.csv")
-gdp_capital <- data.frame(read.csv(path1,stringsAsFactors =FALSE))
-names(gdp_capital)[names(gdp_capital)=="GDP.per.capita..int......constant.2011.international..."] <- "gdp_per_capita"
-gdp_capital
-gdp_2017 <- subset(gdp_capital,gdp_capital$Year==2017,select = c("Entity","gdp_per_capita"))
-gdp_2017
+#import the gpd data and store in gdp_capital data frame
+gdp_capital <- data.frame(read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTgwuQumqjffC6jPec0qsyut_nEwuOjfXx8AwvXCbfNWe5Njffqz7JLvHe6oANsPThPVCL9fu1xbc1T/pub?gid=1467247073&single=true&output=csv",stringsAsFactors =FALSE))
+#print to check
+head(gdp_capital)
+#create subset with only gdp per captita of countries in 2017 and store in gdp_2017
+gdp_2017 <- subset(gdp_capital,gdp_capital$Year==2017)
+#print to check
+head(gdp_2017)
+#create a subset from unpeople data frame with observations reported in December 2017
 personnel_2017 <- filter(unpeople,unpeople$date > as.Date("2017-11-30")&unpeople$date< as.Date("2018-01-01"))
-personnel_2017
-times1 <- 1:nrow(personnel_2017)
-sum_2017 <- function(x) {
-  sum_person <- personnel_2017[x,8]+personnel_2017[x,9]
-  return(sum_person)
-}
-total_2017 <- sapply(times1,sum_2017)
-total_2017
-personnel_2017 <- cbind(total_2017,personnel_2017)
-personnel_2017
-
-personnel_by_countries <- aggregate(total_2017 ~ISOCode3 ,personnel_2017 , sum)
-personnel_by_countries
-
+head(personnel_2017)
+#group the total personnels in all units by country codes and store into personnel_countries
+personnel_countries <- aggregate(personnel_2017$total_personnel, by=list(country=personnel_2017$ISOCode3), FUN=sum)
+head(personnel_countries)
+#match the country codes in 2 different data frames and add gdp into personnel_countries data frame
+personnel_countries$gdp <- gdp_2017$GDP.per.capita[match(personnel_countries$country, gdp_2017$Code)]
+#change the name column 2 to "total_personnel"
+names(personnel_countries)[2]<-paste("total_personnel")
+#eliminate the obervations that have blank or NA values
+personnel_countries <- na.omit(personnel_countries)
+#print to check
+head(personnel_countries)
+#create the model of linear regression with gdp is independent variable and total personnel is dependent variable
+#                       to predict total personnel given by gdp per capita
+model <- lm(total_personnel~gdp,personnel_countries)
+#print the summary of model
+summary(model)
+#plot the linear model
+ggplot(personnel_countries, aes(x=total_personnel, y=gdp)) + geom_point() + stat_smooth(method = "lm", col="red", size = 1) + labs(
+  x = "GDP Per Capita in 2017",
+  y = "Total Personnel in each country in 2017",
+  title = "Relationship between GDP Per Capita and total personnel")
+# Comment: There is a significant (p value: 0.005<0.05) negative (slope= -0.02) relationship between 
+#                           Total Personnel from each country and its GDP per Capita.
+# We have the linear formula: total_personnel = 1134 - 0.02* gdp.
+# Interpretively, with each 100 USD increased in GDP per capital of a country, 
+#                   the total personnels that country sends to UN decreases around 2 people.
 
